@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 
 import { db } from "../db/client";
 import {
@@ -157,3 +157,34 @@ export const setConnection = createServerFn({ method: "POST" })
 
     return { active: data.active };
   });
+
+export type ConnectionRequest = {
+  id: number;
+  personId: number;
+  personName: string;
+  personDescriptor: string;
+  submissionId: number | null;
+  createdAt: string;
+};
+
+// List the active "Connect" requests, newest first, with the person each one
+// points at. Powers the /connections page.
+export const getConnectionRequests = createServerFn({ method: "GET" }).handler(
+  async (): Promise<ConnectionRequest[]> => {
+    const rows = await db
+      .select({
+        id: connectionRequests.id,
+        personId: connectionRequests.personId,
+        personName: people.name,
+        personDescriptor: people.descriptor,
+        submissionId: connectionRequests.submissionId,
+        createdAt: connectionRequests.createdAt,
+      })
+      .from(connectionRequests)
+      .innerJoin(people, eq(people.id, connectionRequests.personId))
+      .where(eq(connectionRequests.active, true))
+      .orderBy(desc(connectionRequests.createdAt), desc(connectionRequests.id));
+
+    return rows;
+  },
+);
