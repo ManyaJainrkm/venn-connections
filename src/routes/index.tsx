@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { getPeople, submitOnboarding, setConnection, type MatchPerson } from '../api/venn';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion, MotionConfig } from 'motion/react';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -34,7 +35,7 @@ export const Route = createFileRoute('/')({
   { property: 'og:title', content: 'Venn — Find your overlap' },
   { property: 'og:description', content: 'Student connections beyond the usual labels. Find your people, in your own words.' },
   { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' },
- ] }), component: Venn,
+ ] }), loader: async () => await getPeople(), component: Venn,
 });
 
 const prompts = [
@@ -42,49 +43,9 @@ const prompts = [
  'What are you working on right now, and what part of it is annoying you?',
  'What could you talk about for an hour with zero preparation?',
 ];
-type Person = { id: number; name: string; descriptor: string; work: number; personal: number; color: string; whyWork: string; whyPersonal: string; answers: string[]; highlights: string[] };
-const people: Person[] = [
- { id: 1, name: 'Arjun Mehta', descriptor: 'Computer science · 3rd year · serial side-project starter', work: 97, personal: 32, color: '', whyWork: 'You both care about making useful things, not just finishing the assignment.', whyPersonal: 'You share a soft spot for the wonderfully overcomplicated.', answers: [
-  'I used to think the best programmer was whoever wrote the cleverest code. Then I had to fix my own project six months later. Now I think boring, readable code is a form of kindness. Still recovering from my one-liner phase.',
-  "Building a tool that finds empty study rooms on campus. The annoying part isn't the code—it's that every building publishes its schedule in a different format. I want to make something people actually use, not another abandoned GitHub repo.",
-  'Mechanical keyboards. Specifically why a $12 switch can sound better than a $90 one. I have a spreadsheet. You did ask.',
- ], highlights: ['boring, readable code is a form of kindness', 'make something people actually use', 'I have a spreadsheet'] },
- { id: 2, name: 'Cleo Rivera', descriptor: 'Film studies · 2nd year · enthusiastic overthinker', work: 29, personal: 98, color: 'avatar-coral', whyWork: 'You both like finding a fresh angle on a familiar problem.', whyPersonal: 'Same offbeat humor. Same ability to turn a small tangent into a whole evening.', answers: [
-  'That being cringe is bad. Being sincerely excited about something is actually kind of brave? I spent a whole year pretending not to like musicals. What a waste of a perfectly good year.',
-  "A five-minute documentary about the guy who repairs bikes outside the library. He has incredible stories but freezes every time the camera is on. So mostly we're drinking tea and not filming. Honestly not mad about it.",
-  "Which fictional characters would survive working one shift at a busy café. Darcy: absolutely not. Shrek: employee of the month. I will defend this with my life.",
- ], highlights: ['being sincerely excited', 'drinking tea and not filming', 'Shrek: employee of the month'] },
- { id: 3, name: 'Maya Chen', descriptor: 'Design · 3rd year · makes things, then makes them again', work: 90, personal: 76, color: 'avatar-yellow', whyWork: 'A shared love of the messy middle: making, testing, and starting again.', whyPersonal: 'You both find the interesting stuff in the tiny, everyday details.', answers: [
-  "I thought asking for feedback meant you didn't trust your own taste. Turns out showing someone an unfinished thing is much harder, and much more useful, than showing off a finished one.",
-  "I'm redesigning the campus food pantry signage. My first version was beautiful and completely confusing. Trying to make it useful before making it pretty this time. The printer and I are also in a long-running argument.",
-  'The little design decisions that make cities feel welcoming. Benches! Hand-painted signs! Why one street feels like a hug and the next feels like a parking ticket.',
- ], highlights: ['showing someone an unfinished thing', 'make it useful before making it pretty', 'little design decisions'] },
- { id: 4, name: 'Theo Brooks', descriptor: 'Mathematics · 2nd year · quietly competitive', work: 85, personal: 48, color: 'avatar-ink', whyWork: 'You both enjoy untangling a hard problem with someone who sticks with it.', whyPersonal: 'You appreciate a dry joke and a very committed niche interest.', answers: [
-  'Group work. Still not a fan of group grades, to be clear. But working through a proof with someone who sees it differently is genuinely better than staring at a wall alone.',
-  "Trying to prove a result for a graph theory reading course. There's one step that everyone calls 'obvious.' It is not obvious. It has eaten my Tuesday, Wednesday, and most of Thursday.",
-  'Chess endgames. Less glamorous than openings, but all the interesting mistakes happen when you think the game is over.',
- ], highlights: ['working through a proof with someone', "It is not obvious", 'all the interesting mistakes'] },
- { id: 5, name: 'Imani Okafor', descriptor: 'Sociology · 4th year · good questions, better playlists', work: 73, personal: 89, color: '', whyWork: 'You both ask who a project is actually helping, before getting lost in the details.', whyPersonal: 'You share a curious streak and strong opinions held with a sense of humor.', answers: [
-  "That changing your mind means you lost an argument. My little brother said 'isn't learning the whole point?' and I had no comeback. Rude of him to be right at fourteen.",
-  "My dissertation is about who uses campus third spaces and who doesn't feel welcome in them. Interview transcription is slowly turning me into a person who hates her own voice. The conversations themselves are the good part.",
-  'How a good playlist tells a story. Track three is a responsibility. You cannot put your emotional climax at track three and then act like nothing happened.',
- ], highlights: ["isn't learning the whole point", "who doesn't feel welcome", 'Track three is a responsibility'] },
- { id: 6, name: 'Leo Park', descriptor: 'Engineering · 3rd year · fixes things with too much tape', work: 94, personal: 56, color: 'avatar-yellow', whyWork: 'Hands-on problem solvers. You both prefer trying it to talking about trying it.', whyPersonal: 'A shared appreciation for small adventures and stories that get out of hand.', answers: [
-  "I used to think I needed a complete plan before starting anything. Building a truly terrible first version teaches me more than another week of planning. My desk is evidence of this philosophy.",
-  "Solar-powered sensor for the community garden. It works beautifully indoors, which is not where gardens are. Waterproofing is apparently its own entire discipline. Would love someone to bounce ideas off.",
-  'All the things that went wrong on my last camping trip. There was a raccoon, a missing tent pole, and a very optimistic weather app.',
- ], highlights: ['a truly terrible first version', 'bounce ideas off', 'a very optimistic weather app'] },
- { id: 7, name: 'Sofia Alvarez', descriptor: 'Literature · 2nd year · always has a book to lend', work: 51, personal: 94, color: 'avatar-coral', whyWork: 'You both notice the human story hiding inside the assignment.', whyPersonal: 'You both love a deep conversation that starts with something wonderfully unserious.', answers: [
-  "Rereading books. I thought life was too short. Then I reread a book I loved at sixteen and realized the book hadn't changed, but I'd become a completely different reader. It's like visiting an old friend.",
-  "An essay on unreliable narrators. The annoying thing is that I've started noticing how unreliable I am when I tell stories about my own life. Very inconvenient research side effect.",
-  "People's marginal notes in secondhand books. Someone wrote 'girl, leave him' in my copy of Jane Eyre and I think about that stranger constantly.",
- ], highlights: ['a completely different reader', 'stories about my own life', "girl, leave him"] },
- { id: 8, name: 'Noah Williams', descriptor: 'Biology · 1st year · birdwatcher, accidental comedian', work: 65, personal: 83, color: 'avatar-ink', whyWork: 'Patient observation and genuine curiosity are your common ground.', whyPersonal: 'You both get a lot of joy out of things other people walk right past.', answers: [
-  'That you have to be loud to be interesting. My roommate barely talks at parties, but once she gets comfortable she is the funniest person I know. Trying to give people more time now.',
-  "Keeping the plants in our lab alive. They're allegedly a hardy species. Mine haven't read that part of the textbook. Logging light and watering schedules to figure out what's happening.",
-  'Birds on campus. The crows recognize the security guard and follow him because he gives them peanuts. There is an entire political system happening above our heads.',
- ], highlights: ['give people more time', 'figure out what\'s happening', 'an entire political system'] },
-];
+// People, answers and match copy now live in the database (see src/db/seed.ts);
+// the route loader fetches them via the getPeople server function.
+type Person = MatchPerson;
 function compatibility(person: Person, value: number) { return person.work * (1 - value / 100) + person.personal * value / 100; }
 function HighlightedAnswer({ text, phrase }: { text: string; phrase: string }) {
  const index = text.toLocaleLowerCase().indexOf(phrase.toLocaleLowerCase());
@@ -315,16 +276,32 @@ function ActivityScale({ name, index, value, onChange }: { name: string; index: 
  </div>;
 }
 function Venn() {
+ const people = Route.useLoaderData();
  const [screen, setScreen] = useState<'onboarding' | 'matches'>('onboarding');
  const [answers, setAnswers] = useState(['', '', '']);
  const [recording, setRecording] = useState<number | null>(null);
  const [blend, setBlend] = useState(50);
  const [sent, setSent] = useState<number[]>([]);
  const [selected, setSelected] = useState<Person | null>(null);
+ const [submissionId, setSubmissionId] = useState<number | null>(null);
  const [activityPreferences, setActivityPreferences] = useState<(number | null)[]>(activities.map(() => null));
- const ranked = useMemo(() => [...people].sort((a, b) => compatibility(b, blend) - compatibility(a, blend) || a.id - b.id), [blend]);
+ const ranked = useMemo(() => [...people].sort((a, b) => compatibility(b, blend) - compatibility(a, blend) || a.id - b.id), [people, blend]);
  const complete = answers.every(answer => answer.trim().length > 0);
- function toggleRequest(id: number) { setSent(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id]); }
+ // Optimistic toggle: flip the UI immediately, persist in the background. A
+ // failed write is logged, not surfaced — this is a connect request, not a payment.
+ function toggleRequest(id: number) {
+  const nextActive = !sent.includes(id);
+  setSent(previous => nextActive ? [...previous, id] : previous.filter(item => item !== id));
+  void setConnection({ data: { submissionId, personId: id, active: nextActive } }).catch(error => console.error('Failed to save connection request', error));
+ }
+ // Persist the onboarding answers, then reveal matches. If the save fails we
+ // still show matches so the prototype keeps working offline.
+ function submitAnswers() {
+  void submitOnboarding({ data: { answers, blend, activityPreferences } })
+   .then(result => setSubmissionId(result.submissionId))
+   .catch(error => console.error('Failed to save onboarding', error));
+  showMatches();
+ }
  function showMatches() { setRecording(null); setScreen('matches'); window.scrollTo({ top: 0 }); }
  return <MotionConfig reducedMotion="user"><div className="venn-app">
   <header className="site-header"><div className="brand" aria-label="Venn"><img className="logo-mark" src={vennLogo} alt="" width={816} height={816} aria-hidden="true"/><span className="brand-word">venn</span></div><span className="header-note">A little common ground.</span></header>
@@ -334,7 +311,7 @@ function Venn() {
     <div id="questionnaire" className="questionnaire">
     <div className="step-strip"><span className="current"><b className="step-number">1</b> Your words</span><i className="step-divider"/><span><b className="step-number">2</b> Your people</span></div>
     <div className="intro"><p className="questionnaire-kicker">Not another introduction</p><h1 className="page-heading">A little more <em>you.</em><br/>A little less small talk.</h1><p className="intro-copy">Skip the labels. Tell us what’s on your mind. <br/>The interesting connections start between the lines.</p></div>
-    <form onSubmit={event => { event.preventDefault(); if (complete) showMatches(); }}>
+    <form onSubmit={event => { event.preventDefault(); if (complete) submitAnswers(); }}>
      {prompts.map((prompt, index) => <div className={`prompt-block prompt-accent-${index}`} key={prompt}>
       {index > 0 && <EarthDivider index={index}/>}
       <div className="prompt-label"><span className="prompt-number">0{index + 1}</span><label htmlFor={`answer-${index}`}>{prompt}</label><PromptCutout index={index}/></div>

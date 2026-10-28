@@ -9,6 +9,13 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Local SQLite database (dev)
+.data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
 dist-ssr
 .output
 .vinxi

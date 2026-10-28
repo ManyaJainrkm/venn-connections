@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // The libSQL driver loads a native addon; keep it external so Vite/nitro never
+  // try to bundle it, and out of client optimization since it's server-only.
+  vite: {
+    ssr: { external: ["@libsql/client", "libsql", "drizzle-orm"] },
+    optimizeDeps: { exclude: ["@libsql/client", "libsql"] },
+  },
 });

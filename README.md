@@ -46,5 +46,39 @@ Prefer working locally? You need Node.js and npm — [install with nvm](https://
 git clone <this-repository-url>
 cd <repository-name>
 npm i
+npm run db:setup   # creates the local SQLite DB and seeds the people
 npm run dev
 ```
+
+## Backend
+
+Venn is a **TanStack Start** app, so the backend lives in this same project — no
+separate server. Data is persisted in SQLite via **Drizzle ORM** and the
+**libSQL** driver.
+
+- **Schema** — `src/db/schema.ts` (`people`, `person_answers`, `submissions`,
+  `submission_answers`, `connection_requests`).
+- **Server functions** — `src/api/venn.ts`:
+  - `getPeople` — reads every person + their answers (called by the route loader).
+  - `submitOnboarding` — saves a visitor's three answers, blend, and activity picks.
+  - `setConnection` — records/toggles a "Connect" request.
+- **Seed data** — `src/db/seed.ts` loads the eight starter people.
+
+Useful scripts:
+
+```sh
+npm run db:push    # apply the schema to the database
+npm run db:seed    # insert the starter people (idempotent)
+npm run db:setup   # push + seed in one step
+```
+
+**Local vs. production.** Local dev writes to `./.data/venn.db` (gitignored).
+For a deployed build (the Cloudflare Workers target), point it at a hosted
+libSQL database such as [Turso](https://turso.tech) by setting:
+
+```sh
+TURSO_DATABASE_URL=libsql://your-db.turso.io
+TURSO_AUTH_TOKEN=your-token
+```
+
+No application code changes between the two — same Drizzle schema and queries.
