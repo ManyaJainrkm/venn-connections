@@ -1,0 +1,15 @@
+# Venn prototype
+- [x] Create the collage frame and three-question onboarding.
+- [x] Implement eight fictional matches, blended scoring and animated reordering.
+- [x] Implement request toggles and accessible highlighted-answer details.
+- [x] Verify the flow and mobile readability.
+- [x] Replace all moving geometric cutouts with extracted original and generated vintage artwork.
+- [x] Verify artwork rendering, idle motion and reduced-motion layout.
+- [x] Replace the grey question separators with vintage Earth spin-and-orbit doodles.
+- [x] Verify separator motion, stillness and mobile readability.
+- [x] Let visitors drag intro cutouts; they drift back to their spots.
+- [x] Refine questionnaire heading spacing, typography and prompt layout; verify the flow.
+- [x] Add optional glowing activity scales whose branches grow left-to-right without stretching; verify click, drag, keyboard and idle states.
+- [x] Replace glow with dimensional pastel crayon strokes and varied confidence labels; verify selection and mobile layout.
+- [x] Clean up broken crayon strokes, smooth continuous drawing with snapping on release, and add movement-only crayon sound; verify interactions.
+- [x] Reword activity endpoints as willingness ("i'm down for it", "so down!", "totally!") and make clicking or dragging an activity line commit on release; verify click, drag, keyboard, clear, touch and the full flow.
